@@ -1754,7 +1754,7 @@ mod tests {
 
     #[test]
     fn override_paths_expand_windows_style_tilde_separators() {
-        let home = dirs::home_dir().expect("home directory");
+        let home = crate::config::get_home_dir();
         assert_eq!(
             resolve_override_path(r"~\pi\agent"),
             home.join("pi").join("agent")
