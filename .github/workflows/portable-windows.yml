@@ -27,11 +27,10 @@ jobs:
           node-version: 22.12.0
 
       - name: Setup pnpm
-        shell: pwsh
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.12.3 --activate
-          pnpm --version
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.12.3
+          run_install: false
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
