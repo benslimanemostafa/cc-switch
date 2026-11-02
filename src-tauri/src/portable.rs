@@ -5,7 +5,6 @@ use std::sync::OnceLock;
 
 #[derive(Clone, Debug)]
 struct PortablePaths {
-    data: PathBuf,
     home: PathBuf,
     config: PathBuf,
 }
@@ -116,7 +115,7 @@ pub fn initialize() -> Result<(), String> {
     env::set_var("XDG_DATA_HOME", xdg_data);
 
     PORTABLE_PATHS
-        .set(Some(PortablePaths { data, home, config }))
+        .set(Some(PortablePaths { home, config }))
         .map_err(|_| "portable mode was already initialized".to_string())?;
 
     Ok(())
