@@ -1068,17 +1068,11 @@ pub(crate) fn resolve_override_path(raw: &str) -> PathBuf {
     };
 
     if raw == "~" {
-        if let Some(home) = Some(crate::config::get_home_dir()) {
-            return home;
-        }
+        return crate::config::get_home_dir();
     } else if let Some(stripped) = raw.strip_prefix("~/") {
-        if let Some(home) = dirs::home_dir() {
-            return join_home(home, stripped);
-        }
+        return join_home(crate::config::get_home_dir(), stripped);
     } else if let Some(stripped) = raw.strip_prefix("~\\") {
-        if let Some(home) = dirs::home_dir() {
-            return join_home(home, stripped);
-        }
+        return join_home(crate::config::get_home_dir(), stripped);
     }
 
     PathBuf::from(raw)
