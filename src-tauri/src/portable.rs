@@ -29,7 +29,7 @@ pub fn initialize() -> Result<(), String> {
         .ok_or_else(|| "executable has no parent directory".to_string())?;
 
     let marker = executable_dir.join("portable.ini");
-    match fs::metadata(&marker) {
+    match fs::symlink_metadata(&marker) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
             PORTABLE_PATHS
                 .set(None)
@@ -38,6 +38,9 @@ pub fn initialize() -> Result<(), String> {
         }
         Err(error) => {
             return Err(format!("cannot inspect portable marker {}: {error}", marker.display()));
+        }
+        Ok(metadata) if is_reparse_point(&metadata) => {
+            return Err(format!("portable marker cannot be a junction or symbolic link: {}", marker.display()));
         }
         Ok(metadata) if !metadata.is_file() => {
             return Err(format!("portable marker is not a file: {}", marker.display()));
