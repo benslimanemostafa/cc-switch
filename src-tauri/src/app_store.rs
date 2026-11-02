@@ -108,17 +108,11 @@ pub fn set_app_config_dir_to_store(
 /// 解析路径，支持 ~ 开头的相对路径
 fn resolve_path(raw: &str) -> PathBuf {
     if raw == "~" {
-        if let Some(home) = crate::config::get_home_dir().into() {
-            return home;
-        }
+        return crate::config::get_home_dir();
     } else if let Some(stripped) = raw.strip_prefix("~/") {
-        if let Some(home) = dirs::home_dir() {
-            return home.join(stripped);
-        }
+        return crate::config::get_home_dir().join(stripped);
     } else if let Some(stripped) = raw.strip_prefix("~\\") {
-        if let Some(home) = dirs::home_dir() {
-            return home.join(stripped);
-        }
+        return crate::config::get_home_dir().join(stripped);
     }
 
     PathBuf::from(raw)
