@@ -31,5 +31,10 @@ fn main() {
         }
     }
 
+    if let Err(error) = cc_switch_lib::portable::initialize() {
+        eprintln!("CC Switch portable startup blocked: {error}");
+        std::process::exit(2);
+    }
+
     cc_switch_lib::run();
 }
