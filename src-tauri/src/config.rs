@@ -20,6 +20,10 @@ use crate::error::AppError;
 /// 为了让 Windows CI/本地测试能稳定隔离真实用户数据，可通过 `CC_SWITCH_TEST_HOME`
 /// 显式覆盖 home dir（仅用于测试/调试场景）。
 pub fn get_home_dir() -> PathBuf {
+    if let Some(home) = crate::portable::home_dir() {
+        return home;
+    }
+
     if let Some(home) = test_home_override() {
         return home;
     }
@@ -311,6 +315,10 @@ pub fn get_claude_settings_path() -> PathBuf {
 
 /// 获取应用配置目录路径 (~/.cc-switch)
 pub fn get_app_config_dir() -> PathBuf {
+    if let Some(portable) = crate::portable::app_config_dir() {
+        return portable;
+    }
+
     if let Some(custom) = crate::app_store::get_app_config_dir_override() {
         return custom;
     }
