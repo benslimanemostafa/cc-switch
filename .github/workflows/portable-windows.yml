@@ -1,6 +1,8 @@
 name: Windows D-drive portable build
 
 on:
+  push:
+    branches: [portable-d-drive]
   workflow_dispatch:
 
 permissions:
