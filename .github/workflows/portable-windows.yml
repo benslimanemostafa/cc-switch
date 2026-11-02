@@ -43,7 +43,7 @@ jobs:
         run: |
           pnpm install --no-frozen-lockfile
           cargo update --manifest-path src-tauri/Cargo.toml -p tauri --precise 2.12.5
-          cargo update --manifest-path src-tauri/Cargo.toml -p tauri-build --precise 2.7.2
+          cargo update --manifest-path src-tauri/Cargo.toml -p tauri-build --precise 2.7.4
 
       - name: Frontend checks
         shell: pwsh
