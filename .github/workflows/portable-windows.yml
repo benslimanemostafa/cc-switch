@@ -1,0 +1,110 @@
+name: Windows D-drive portable build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portable-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build CC Switch portable for D:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Setup pnpm
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.12.3 --activate
+          pnpm --version
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.95.0
+          components: rustfmt, clippy
+
+      - name: Resolve and install dependencies
+        shell: pwsh
+        run: |
+          pnpm install --no-frozen-lockfile
+          cargo update --manifest-path src-tauri/Cargo.toml -p tauri --precise 2.12.5
+          cargo update --manifest-path src-tauri/Cargo.toml -p tauri-build --precise 2.7.2
+
+      - name: Frontend checks
+        shell: pwsh
+        run: |
+          pnpm typecheck
+          pnpm test:unit
+          pnpm build:renderer
+
+      - name: Rust checks
+        shell: pwsh
+        run: |
+          cargo fmt --check --manifest-path src-tauri/Cargo.toml
+          cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Build portable Windows executable
+        shell: pwsh
+        run: |
+          pnpm exec tauri build --no-bundle --config src-tauri/tauri.portable.conf.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Assemble portable package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = 'src-tauri/target/release/cc-switch.exe'
+          if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+            throw "Build output not found: $exe"
+          }
+
+          $stage = Join-Path $env:GITHUB_WORKSPACE 'portable-output'
+          $app = Join-Path $stage 'App'
+          New-Item -ItemType Directory -Force -Path $app | Out-Null
+          Copy-Item -LiteralPath $exe -Destination (Join-Path $app 'cc-switch.exe')
+
+          @'
+          # CC Switch D-drive portable mode
+          portable=true
+          required_drive=D:
+          '@ | Set-Content -LiteralPath (Join-Path $app 'portable.ini') -Encoding ASCII
+
+          @'
+          CC Switch portable build
+          
+          Extract the complete package to a writable folder on drive D:.
+          Run App\cc-switch.exe.
+          All CC Switch app data, settings, logs, caches, temporary files,
+          and WebView2 user data are stored in the sibling data directory.
+          The application refuses to start if the portable marker is invalid
+          or the package is not running from drive D:.
+          
+          This package does not install Rust, Node.js, Visual Studio, or WebView2.
+          Windows WebView2 Runtime must already be available on the host.
+          '@ | Set-Content -LiteralPath (Join-Path $stage 'README.txt') -Encoding UTF8
+
+          $zip = Join-Path $env:GITHUB_WORKSPACE 'CC-Switch-4.0.24-Windows-Portable-D.zip'
+          Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+          Get-FileHash -LiteralPath $zip -Algorithm SHA256 | Format-List
+
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: CC-Switch-4.0.24-Windows-Portable-D
+          path: CC-Switch-4.0.24-Windows-Portable-D.zip
+          if-no-files-found: error
+          retention-days: 30
