@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "appDirectoriesOverride": {
+      "config": "../data/config",
+      "data": "../data/appdata",
+      "localData": "../data/webview2",
+      "cache": "../data/cache",
+      "log": "../data/logs"
+    }
+  }
+}
