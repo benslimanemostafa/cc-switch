@@ -11,7 +11,7 @@ fn claude_dir() -> Result<PathBuf, AppError> {
     if let Some(dir) = crate::settings::get_claude_override_dir() {
         return Ok(dir);
     }
-    let home = dirs::home_dir().ok_or_else(|| AppError::Config("无法获取用户主目录".into()))?;
+    let home = crate::config::get_home_dir();
     Ok(home.join(CLAUDE_DIR))
 }
 
