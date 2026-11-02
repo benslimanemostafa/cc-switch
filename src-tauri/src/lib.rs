@@ -40,6 +40,7 @@ mod panic_hook;
 mod pi_config;
 mod prompt;
 mod prompt_files;
+pub mod portable;
 mod provider;
 mod proxy;
 mod services;
