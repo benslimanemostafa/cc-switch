@@ -85,7 +85,7 @@ fn get_base_dir_with_fallback(
     primary_path
         .parent()
         .map(|p| p.to_path_buf())
-        .or_else(|| dirs::home_dir().map(|h| h.join(fallback_dir)))
+        .or_else(|| Some(crate::config::get_home_dir().join(fallback_dir)))
         .ok_or_else(|| {
             AppError::localized(
                 "home_dir_not_found",
